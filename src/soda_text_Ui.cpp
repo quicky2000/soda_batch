@@ -22,6 +22,8 @@
 #include "soda_text_Ui.h"
 #include "analyzer_base.h"
 #include "osm_diff_watcher.h"
+#include "quicky_exception.h"
+
 #include <signal.h>
 
 namespace soda_batch
@@ -54,9 +56,36 @@ namespace soda_batch
   //----------------------------------------------------------------------------
   void soda_text_Ui::run(const std::string & p_file_name)
   {
-    osm_diff_watcher::osm_diff_watcher l_watcher(p_file_name,*this);
-    m_watcher = &l_watcher;
-    l_watcher.run();
+    try
+      {
+        m_watcher= new osm_diff_watcher::osm_diff_watcher(p_file_name,*this);
+        m_watcher->run();
+      }
+    catch(quicky_exception::quicky_runtime_exception & e)
+      {
+        std::stringstream l_stream;
+#ifdef SODA_QTUI_DEBUG
+         l_stream << " from line " << e.get_line() << " in file " << e.get_file();
+#endif
+         std::cout << "ERROR : Runtime exception : " << std::string(e.what()) + l_stream.str() << std::endl;
+      }
+      catch(quicky_exception::quicky_logic_exception & e)
+      {
+          std::stringstream l_stream;
+#ifdef SODA_QTUI_DEBUG
+          l_stream << " from line " << e.get_line() << " in file " << e.get_file();
+#endif
+          std::cout << "ERROR : Logic exception : "<< std::string(e.what())/* + l_stream.str()*/ << std::endl;
+      }
+      catch(std::logic_error & e)
+      {
+          std::cout << "ERROR : Logic error"<< std::string(e.what())<< std::endl;
+      }
+      catch(std::runtime_error & e)
+      {
+          std::cout << "ERROR : Runtime error"<< std::string(e.what())<< std::endl;
+      }
+    delete m_watcher;
     m_watcher = NULL;
   }
 
@@ -84,7 +113,7 @@ namespace soda_batch
   //------------------------------------------------------------------------------
   void soda_text_Ui::update_diff_state(const osm_diff_analyzer_if::osm_diff_state & p_diff_state)
   {
-    std::cout << "Timestamp of diff file : " << p_diff_state.get_timestamp() << std::endl ;
+    std::cout << "Sequence number : " << p_diff_state.get_sequence_number() << "\tTimestamp of diff file : " << p_diff_state.get_timestamp() << std::endl ;
   }
 
   //------------------------------------------------------------------------------
@@ -119,7 +148,7 @@ namespace soda_batch
   {
     if(m_progress_max)
       {
-	std::cout << "Progress : " << ((float)(p_value - m_progress_min))/((float)m_progress_max) << std::endl ;
+	std::cout << "Progress : " << 100.0*((float)(p_value - m_progress_min))/((float)m_progress_max) << "%" << std::endl ;
       }
   }
 
