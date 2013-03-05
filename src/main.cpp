@@ -30,7 +30,7 @@ int main(int p_argc,char ** p_argv)
   if(p_argc > 2)
     {
       std::cout << "ERROR : correct usage is osm_diff_watcher.exe [configuration_file_name]" << std::endl ;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   if(p_argc == 2)
     {
