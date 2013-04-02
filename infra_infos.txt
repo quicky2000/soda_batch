@@ -1,4 +1,4 @@
-depend:osm_diff_watcher
+depend:soda_core
 LDFLAGS:
 CFLAGS:
 
